@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import ky from './lib/ky'
-  import type { Quote } from 'src/models/Quote'
-  import QuoteList from './components/QuoteList.svelte'
-  import QuoteForm from './components/QuoteForm.svelte'
-  import type { HTTPError } from 'ky'
-  import { isLoading, lastCreated, storedQuotes } from './stores'
+  import { onMount } from 'svelte';
+  import ky from './lib/ky';
+  import type { Quote } from 'src/models/Quote';
+  import QuoteList from './components/QuoteList.svelte';
+  import QuoteForm from './components/QuoteForm.svelte';
+  import type { HTTPError } from 'ky';
+  import { isLoading, lastCreated, storedQuotes } from './stores';
 
   let loading = false
   let error: HTTPError
@@ -13,36 +13,36 @@
   let quotes: Quote[] = []
 
   isLoading.subscribe((value) => {
-    loading = value
-  })
+    loading = value;
+  });
 
   storedQuotes.subscribe((value) => {
-    quotes = value
-  })
+    quotes = value;
+  });
 
   lastCreated.subscribe((value) => {
-    lastCreatedId = value
-  })
+    lastCreatedId = value;
+  });
 
   const handleOnCreated = (e: CustomEvent<Quote>) => {
     const quote: Quote = {
       _id: e.detail._id,
       author: e.detail.author,
       quote: e.detail.quote,
-    }
-    storedQuotes.set([quote, ...quotes])
+    };
+    storedQuotes.set([quote, ...quotes]);
     // Fun styling
 
-    lastCreated.set(quote._id)
+    lastCreated.set(quote._id);
 
     setTimeout(() => {
-      lastCreated.set(null)
-    }, 3000)
-  }
+      lastCreated.set(null);
+    }, 3000);
+  };
 
   const handleOnError = (e: CustomEvent<HTTPError>) => {
-    console.log(e.detail.message)
-  }
+    console.log(e.detail.message);
+  };
 
   onMount(async () => {
     try {
@@ -57,7 +57,7 @@
       console.log('Could not connect to NestJS server 😞')
       console.log(error)
     }
-  })
+  });
 </script>
 
 <main>
