@@ -1,46 +1,73 @@
 <script lang="ts">
-  import ky from '../lib/ky';
+  import ky from '../lib/ky'
 
-  import { createEventDispatcher } from 'svelte/internal';
-  import type { HTTPError } from 'ky';
-  import type { Quote } from 'src/models/Quote';
-  import { storedQuotes } from '../stores';
+  import { createEventDispatcher } from 'svelte/internal'
+  import type { HTTPError } from 'ky'
+  import type { Quote } from 'src/models/Quote'
+  import { storedQuotes, lastCreated } from '../stores'
 
-  let quotes: Quote[] = [];
-  let quote = '';
-  let author = '';
+  let quotes: Quote[] = []
+  let quote = ''
+  let author = ''
+  let lastCreatedId
 
   storedQuotes.subscribe((value) => {
-    quotes = value;
-  });
+    quotes = value
+  })
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
+
+  lastCreated.subscribe((value) => {
+    lastCreatedId = value
+  })
+
+  const handleOnCreated = (q: Quote) => {
+    const quote: Quote = {
+      _id: q._id,
+      author: q.author,
+      quote: q.quote,
+    }
+    storedQuotes.set([quote, ...quotes])
+    // Fun styling
+
+    lastCreated.set(quote._id)
+
+    setTimeout(() => {
+      lastCreated.set(null)
+    }, 3000)
+  }
+
+  const handleOnError = (e: HTTPError) => {
+    console.log(e.message)
+  }
 
   const handleOnSubmit: svelte.JSX.FormEventHandler<HTMLFormElement> = async (
     e
   ) => {
-    if (!author || !quote) return;
+    if (!author || !quote) return
 
     try {
       const result: Quote = await ky
         .post('quotes/create', {
           json: { author, quote },
         })
-        .json();
-      dispatch('created', result);
-      quote = '';
-      author = '';
+        .json()
+      dispatch('created', result)
+      handleOnCreated(result)
+      quote = ''
+      author = ''
     } catch (e: unknown) {
-      dispatch('error', e as HTTPError);
+      dispatch('error', e as HTTPError)
+      handleOnError(e as HTTPError)
     }
-  };
+  }
 
   const deleteAll = async () => {
     try {
-      await ky.delete('quotes/delete');
-      storedQuotes.set([]);
+      await ky.delete('quotes/delete')
+      storedQuotes.set([])
     } catch (error) {}
-  };
+  }
 </script>
 
 <div class="form-wrapper">
