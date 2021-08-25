@@ -1,69 +1,90 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import ky from 'ky';
-  import logo from './assets/svelte.png';
-  import Counter from './lib/Counter.svelte';
+  import { onMount } from 'svelte'
+  import ky from './lib/ky'
+  import type { Quote } from 'src/models/Quote'
+  import QuoteList from './components/QuoteList.svelte'
+  import QuoteForm from './components/QuoteForm.svelte'
+  import type { HTTPError } from 'ky'
+  import { isLoading, lastCreated, storedQuotes } from './stores'
 
-  let text = 'Connecting to NestJS server...';
+  let loading = false
+  let lastCreatedId
+  let quotes: Quote[] = []
+
+  isLoading.subscribe((value) => {
+    loading = value
+  })
+
+  storedQuotes.subscribe((value) => {
+    quotes = value
+  })
+
+  lastCreated.subscribe((value) => {
+    lastCreatedId = value
+  })
+
+  const handleOnCreated = (e: CustomEvent<Quote>) => {
+    const quote: Quote = {
+      _id: e.detail._id,
+      author: e.detail.author,
+      quote: e.detail.quote,
+    }
+    storedQuotes.set([quote, ...quotes])
+    // Fun styling
+
+    lastCreated.set(quote._id)
+
+    setTimeout(() => {
+      lastCreated.set(null)
+    }, 3000)
+  }
+
+  const handleOnError = (e: CustomEvent<HTTPError>) => {
+    console.log(e.detail.message)
+  }
 
   onMount(async () => {
     try {
-      text = await ky.get('http://localhost:8000/').text();
+      isLoading.set(true)
+      quotes = (await ky.get('quotes').json()) as Quote[]
+      quotes = quotes.reverse()
+      storedQuotes.set(quotes)
+      isLoading.set(false)
     } catch (error) {
-      text = 'Could not connect to NestJS server 😞';
+      console.log('Could not connect to NestJS server 😞')
     }
-  });
+  })
 </script>
 
 <main>
-  <img src={logo} alt="Svelte Logo" />
-  <h1>Hello Typescript!</h1>
-  <Counter />
-  {#if text}
-    <p>{text}</p>
-  {/if}
+  <QuoteForm on:created={handleOnCreated} on:error={handleOnError} />
+  <QuoteList />
 </main>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=Poppins:wght@400;500;700&display=swap');
   :root {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+      sans-serif;
+    font-size: 16px;
+    --svelte-orange: rgb(255, 62, 0);
+    --svelte-orange-hex: 255, 62, 0;
+    --svelte-gray: rgb(103, 103, 120);
+  }
+
+  :global(*) {
+    font: inherit;
+  }
+
+  :global(html) {
+    margin: 0;
+    padding: 0;
   }
 
   main {
-    text-align: center;
-    padding: 1em;
-    margin: 0 auto;
-  }
-
-  img {
-    height: 16rem;
-    width: 16rem;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4rem;
-    font-weight: 100;
-    line-height: 1.1;
-    margin: 2rem auto;
-    max-width: 14rem;
-  }
-
-  p {
-    max-width: 14rem;
-    margin: 1rem auto;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
+    display: grid;
+    place-content: center;
+    padding: 2rem 1rem;
   }
 </style>
