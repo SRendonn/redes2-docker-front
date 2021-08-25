@@ -8,6 +8,7 @@
   import { isLoading, lastCreated, storedQuotes } from './stores'
 
   let loading = false
+  let error: HTTPError
   let lastCreatedId
   let quotes: Quote[] = []
 
@@ -50,15 +51,22 @@
       quotes = quotes.reverse()
       storedQuotes.set(quotes)
       isLoading.set(false)
-    } catch (error) {
+    } catch (e) {
+      isLoading.set(false)
+      error = e as HTTPError
       console.log('Could not connect to NestJS server 😞')
+      console.log(error)
     }
   })
 </script>
 
 <main>
   <QuoteForm on:created={handleOnCreated} on:error={handleOnError} />
-  <QuoteList />
+  {#if !error}
+    <QuoteList />
+  {:else}
+    <p>Hubo un error buscando las frases (╯°□°）╯︵ ┻━┻</p>
+  {/if}
 </main>
 
 <style>
@@ -86,5 +94,9 @@
     display: grid;
     place-content: center;
     padding: 2rem 1rem;
+  }
+
+  p {
+    text-align: center;
   }
 </style>
