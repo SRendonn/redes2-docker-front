@@ -1,31 +1,31 @@
 <script lang="ts">
-  import ky from '../lib/ky'
+  import ky from '../lib/ky';
 
-  import type { Quote } from 'src/models/Quote'
-  import { lastCreated } from '../stores'
-  import LikeSvg from './LikeSvg.svelte'
-  import TrashSvg from './TrashSvg.svelte'
-  import { createEventDispatcher } from 'svelte'
-  import type { HTTPError } from 'ky'
+  import type { Quote } from 'src/models/Quote';
+  import { lastCreated } from '../stores';
+  import LikeSvg from './LikeSvg.svelte';
+  import TrashSvg from './TrashSvg.svelte';
+  import { createEventDispatcher } from 'svelte';
+  import type { HTTPError } from 'ky';
 
-  let lastCreatedId = null
+  let lastCreatedId = null;
   lastCreated.subscribe((value) => {
-    lastCreatedId = value
-  })
+    lastCreatedId = value;
+  });
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher();
 
   const deleteQuote: svelte.JSX.MouseEventHandler<HTMLButtonElement> = (e) => {
     try {
-      const result = ky.delete(`quotes/delete/${quote._id}`)
-      dispatch('deleted', quote)
+      const result = ky.delete(`quotes/delete/${quote._id}`);
+      dispatch('deleted', quote);
     } catch (error) {
-      dispatch('error', error as HTTPError)
+      dispatch('error', error as HTTPError);
     }
-  }
+  };
 
-  export let quote: Quote = null
-  let liked = false
+  export let quote: Quote = null;
+  let liked = false;
 </script>
 
 <div
@@ -33,7 +33,11 @@
 >
   <p class="quote-quote">"{quote.quote}"</p>
   <div class="quote-footer">
+    <p class="quote-author">{quote.author}</p>
     <div>
+      <button class="icon-button delete-button" on:click={deleteQuote}>
+        <TrashSvg />
+      </button>
       <button
         class="icon-button like-button"
         aria-label="Like this quote"
@@ -41,11 +45,7 @@
       >
         <LikeSvg {liked} />
       </button>
-      <button class="icon-button delete-button" on:click={deleteQuote}>
-        <TrashSvg />
-      </button>
     </div>
-    <p class="quote-author">{quote.author}</p>
   </div>
 </div>
 
@@ -80,6 +80,7 @@
   }
 
   .quote-author {
+    padding-left: 0.25rem;
     font-size: 0.75rem;
     color: var(--svelte-orange);
     text-align: right;

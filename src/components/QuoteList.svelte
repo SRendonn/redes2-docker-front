@@ -2,7 +2,7 @@
   import { slide } from 'svelte/transition';
   import type { Quote } from 'src/models/Quote';
   import QuoteCard from './QuoteCard.svelte';
-  import { isLoading, storedQuotes } from '../stores/index';
+  import { isLoading, storedQuotes } from '../stores';
   import Spinner from './Spinner.svelte';
 
   let loading = false;
@@ -25,7 +25,6 @@
 </script>
 
 <div>
-  {#if quotes.length}<hr />{/if}
   <ul>
     {#each quotes as quote (quote._id)}
       <li transition:slide>
@@ -42,9 +41,6 @@
 </div>
 
 <style>
-  hr {
-    margin: 0;
-  }
   li {
     list-style: none;
   }
