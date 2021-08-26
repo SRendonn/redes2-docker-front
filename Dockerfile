@@ -12,6 +12,6 @@ COPY . ./
 
 RUN yarn build
 
-FROM nginx AS production
+FROM nginx:alpine AS production
 
 COPY --from=development /usr/src/app/dist /usr/share/nginx/html
